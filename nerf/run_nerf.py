@@ -994,7 +994,7 @@ def train(env, flag, test_file, i_weights):
         rays_rgb = torch.Tensor(rays_rgb).to(device)
 
     #______________________________________
-    N_iters = 10000
+    N_iters = 100000
 
     losses = []
     # Summary writers
