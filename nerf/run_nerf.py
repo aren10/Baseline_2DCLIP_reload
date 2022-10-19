@@ -721,9 +721,9 @@ def config_parser(env, flag):
     parser.add_argument("--i_img",     type=int, default=500, 
                         help='frequency of tensorboard image logging')
     parser.add_argument("--i_weights")
-    parser.add_argument("--i_testset", type=int, default=10000, 
+    parser.add_argument("--i_testset", type=int, default=1000000000, 
                         help='frequency of testset saving')
-    parser.add_argument("--i_video",   type=int, default=20000, 
+    parser.add_argument("--i_video",   type=int, default=2000000000, 
                         help='frequency of render_poses video saving')
     parser.add_argument("--env")
     parser.add_argument("--flag")

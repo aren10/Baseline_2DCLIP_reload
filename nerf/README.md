@@ -19,6 +19,9 @@ scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/gt_query_map.png /Users
 scp -r aren10@ssh.ccv.brown.edu:/users/aren10/Baseline_2DCLIP_reload/nerf/losses.png /Users/jfgvl1187/Desktop/losses.png
 zip -r logs.zip logs
 scp -r aren10@ssh.ccv.brown.edu:/users/aren10/Baseline_2DCLIP_reload/nerf/logs.zip /Users/jfgvl1187/Desktop/logs.zip
+rm -r logs
+rm logs.zip
+
 myq
 scancel id1 id2
 
