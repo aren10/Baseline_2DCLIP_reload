@@ -424,7 +424,7 @@ def create_nerf(args, flag, test_file):
     else:
         if(flag == "train"):
             ckpts = [os.path.join(basedir, expname, f) for f in sorted(os.listdir(os.path.join(basedir, expname))) if 'tar' in f]
-        elif(flag == "test"):
+        elif(flag == "test" or flag == "video"):
             ckpts = [os.path.join(basedir, expname, test_file)]
     print('Found ckpts', ckpts) #[]
     if len(ckpts) > 0 and not args.no_reload:
