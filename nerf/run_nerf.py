@@ -1041,12 +1041,12 @@ def train(env, flag, test_file, i_weights):
 
     if args.render_query_video:
         with torch.no_grad():
-            queries, disps = render_query_video(args.root_path + "Nesf0_2D/" + args.text + "_clip_feature.npy", render_poses, hwf, K, args.chunk, render_kwargs_test, use_clip = True)
-            rgbs, disps = render_path(render_poses, hwf, K, args.chunk, render_kwargs_test)
+            queries,queries_disps = render_query_video(args.root_path + "Nesf0_2D/" + args.text + "_clip_feature.npy", render_poses, hwf, K, args.chunk, render_kwargs_test, use_clip = True)
+            rgbs, rgbs_disps = render_path(render_poses, hwf, K, args.chunk, render_kwargs_test)
         imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video.mp4", to8b(queries), fps=30, quality=8)
-        imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video_disp.mp4", to8b(disps / np.max(disps)), fps=30, quality=8)
+        imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video_disp.mp4", to8b(queries_disps / np.max(queries_disps)), fps=30, quality=8)
         imageio.mimwrite(args.root_path + "Nesf0_2D/render_path.mp4", to8b(rgbs), fps=30, quality=8)
-        imageio.mimwrite(args.root_path + "Nesf0_2D/render_path_disp.mp4", to8b(disps / np.max(disps)), fps=30, quality=8)
+        imageio.mimwrite(args.root_path + "Nesf0_2D/render_path_disp.mp4", to8b(rgbs_disps / np.max(rgbs_disps)), fps=30, quality=8)
         return
     """
     if args.render_compressed_feature_video:
