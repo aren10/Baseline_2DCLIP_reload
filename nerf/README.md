@@ -6,11 +6,12 @@ module load cudnn/8.2.0
 module load anaconda/2020.02
 source /gpfs/runtime/opt/anaconda/2020.02/etc/profile.d/conda.sh
 conda activate PL3DS_Baseline
-rm -r Baseline_2DCLIP
+rm -r Baseline_2DCLIP_reload
 git clone https://github.com/aren10/Baseline_2DCLIP_reload.git
 cd Baseline_2DCLIP_reload/nerf
 python run_nerf.py --env linux --flag train --i_weights 1000
-python run_nerf.py --env linux --flag test --test_file 009950.tar
+python run_nerf.py --env linux --flag test --test_file 099000.tar
+python run_nerf.py --env linux --flag video --test_file 099000.tar
 ctrl + z
 cd /users/aren10/data/toybox-13/0
 scp /Users/jfgvl1187/Desktop/metadata.json aren10@ssh.ccv.brown.edu:/users/aren10/data/0/metadata.json

@@ -159,7 +159,6 @@ def load_Nesf_CLIP_data(basedir, clip_basedir, env, use_CLIP = False):
     return dataloader_train, dataloader_test, render_poses, [H, W, focal], near, far, K
 
 
-
     """
     for i in range(len(dataloader_train)):
         img = dataloader[i]["image"]

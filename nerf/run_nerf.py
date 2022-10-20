@@ -26,6 +26,7 @@ import sys
 from torch.nn.functional import normalize
 
 import clip
+#from sklearn.decomposition import PCA
 
 
 
@@ -309,8 +310,6 @@ def render_CLIP_path(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, s
     clips_ests = np.stack(clips_ests, 0)
     disps = np.stack(disps, 0)
     return clips_ests, disps
-
-
 
 
 def render_path(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedir=None, render_factor=0):
@@ -671,7 +670,23 @@ def config_parser(env, flag):
         parser.add_argument("--render_test", action='store_true', default = True,
                             help='render the test set instead of render_poses path')
         parser.add_argument("--render_factor", type=int, default=0, 
-                            help='downsampling factor to speed up rendering, set 4 or 8 for fast preview')  
+                            help='downsampling factor to speed up rendering, set 4 or 8 for fast preview') 
+    elif(flag == "video"): 
+        print("_____________________video")
+        parser.add_argument("--render_only", action='store_true', default = False,
+                            help='do not optimize, reload weights and render out render_poses path')
+        parser.add_argument("--render_test", action='store_true', default = False,
+                            help='render the test set instead of render_poses path')
+        parser.add_argument("--render_factor", type=int, default=0, 
+                            help='downsampling factor to speed up rendering, set 4 or 8 for fast preview')
+            
+    if(flag == "video"):
+        parser.add_argument("--render_query_video", action='store_true', default = True)
+        parser.add_argument("--render_compressed_feature_video", action='store_true', default = True)
+    else:
+        parser.add_argument("--render_query_video", action='store_true', default = False)
+        parser.add_argument("--render_compressed_feature_video", action='store_true', default = False)
+
     
     parser.add_argument("--text", type=str, default="chair")
 
@@ -729,6 +744,150 @@ def config_parser(env, flag):
     parser.add_argument("--flag")
     parser.add_argument("--test_file")
     return parser
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def render_query_video(text_embedding_address, render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedir=None, render_factor=0, use_clip = False):
+    H, W, focal = hwf
+    if render_factor!=0:
+        # Render downsampled for speed
+        H = H//render_factor
+        W = W//render_factor
+        focal = focal/render_factor
+    queries = []
+    disps = []
+    t = time.time()
+    for i, c2w in enumerate(tqdm(render_poses)):
+        #print(i, time.time() - t)
+        t = time.time()
+        clips_est, disp, acc, _ = render(H, W, K, chunk=chunk, c2w=c2w[:3,:4], **render_kwargs, use_CLIP=use_clip)
+        clips_est = torch.Tensor(clips_est).to(device)
+        clips_est = normalize(clips_est, p = 2, dim = -1)
+        nerf_img_clip = clips_est
+        image_features_normalized = nerf_img_clip
+        image_features_normalized = image_features_normalized.to(torch.float) #text_features_normalized = (text_features - torch.min(text_features)) / (torch.max(text_features) - torch.min(text_features))
+        gt_text_clip = torch.tensor(np.load(text_embedding_address))
+        text_features_normalized = gt_text_clip
+        text_features_normalized = text_features_normalized.to(torch.float)
+        r,c,f = image_features_normalized.size()
+        input = torch.empty(r, c, 1)
+        query_map = torch.zeros_like(input)
+        for i in range(r):
+            for j in range(c):
+                query_map[i,j,0] = (torch.dot(image_features_normalized[i,j,:], text_features_normalized) / (np.linalg.norm(image_features_normalized[i,j,:].cpu().detach().numpy()) * np.linalg.norm(text_features_normalized.cpu().detach().numpy())))
+        query_map = query_map.cpu().float().numpy()
+        query_map = np.squeeze(query_map)
+        query_map_remapped = (query_map - np.min(query_map)) / (np.max(query_map) - np.min(query_map))
+        r,c = np.shape(query_map_remapped)
+        query_map_3d = np.zeros((r,c,3))
+        query_map_3d[:,:,0] = query_map_remapped
+        query_map_3d[:,:,1] = query_map_remapped
+        query_map_3d[:,:,2] = query_map_remapped
+        queries.append(query_map_3d)
+        disps.append(disp.cpu().numpy())
+        if savedir is not None:
+            np.save(savedir, '{:03d}_clips_est'.format(i), clips_est.cpu())
+        if gt_imgs is not None:
+            imgs = to8b(gt_imgs[-1])
+            filename = os.path.join(savedir, '{:03d}_gt.png'.format(i))
+            imageio.imwrite(filename, imgs)
+    queries = np.stack(queries, 0)
+    disps = np.stack(disps, 0)
+    return queries, disps
+
+"""
+def render_compressed_feature_video(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedir=None, render_factor=0, use_clip = False):
+    H, W, focal = hwf
+    if render_factor!=0:
+        # Render downsampled for speed
+        H = H//render_factor
+        W = W//render_factor
+        focal = focal/render_factor
+    compressed_features = []
+    disps = []
+    t = time.time()
+    for i, c2w in enumerate(tqdm(render_poses)):
+        #print(i, time.time() - t)
+        t = time.time()
+        clips_est, disp, acc, _ = render(H, W, K, chunk=chunk, c2w=c2w[:3,:4], **render_kwargs, use_CLIP=use_clip)
+        clips_est = torch.Tensor(clips_est).to(device)
+        clips_est = normalize(clips_est, p = 2, dim = -1)
+        #sklearn.decomposition.PCA()
+
+        compressed_features.append(compressed_f.cpu().numpy())
+
+
+        disps.append(disp.cpu().numpy())
+        if savedir is not None:
+            np.save(savedir, '{:03d}_clips_est'.format(i), clips_est.cpu())
+        if gt_imgs is not None:
+            imgs = to8b(gt_imgs[-1])
+            filename = os.path.join(savedir, '{:03d}_gt.png'.format(i))
+            imageio.imwrite(filename, imgs)
+    compressed_features = np.stack(compressed_features, 0)
+    disps = np.stack(disps, 0)
+    return compressed_features, disps
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -861,6 +1020,45 @@ def train(env, flag, test_file, i_weights):
 
     # Move testing data to GPU
     render_poses = torch.Tensor(render_poses).to(device)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if args.render_query_video:
+        with torch.no_grad():
+            queries, disps = render_query_video(args.root_path + "Nesf0_2D/" + args.text + "_clip_feature.npy", render_poses, hwf, K, args.chunk, render_kwargs_test)
+        imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video.mp4", to8b(queries), fps=30, quality=8)
+        imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video_disp.mp4", to8b(disps / np.max(disps)), fps=30, quality=8)
+        return
+    """
+    if args.render_compressed_feature_video:
+        with torch.no_grad():
+            compressed_features, disps = render_compressed_feature_video(render_poses, hwf, K, args.chunk, render_kwargs_test)
+        imageio.mimwrite(args.root_path + "Nesf0_2D/render_compressed_feature_video.mp4", to8b(compressed_features), fps=30, quality=8)
+        imageio.mimwrite(args.root_path + "Nesf0_2D/render_compressed_feature_video_disp.mp4", to8b(disps / np.max(disps)), fps=30, quality=8)
+        return
+    """
+
+
+
+
+
+
 
 
 
@@ -1222,12 +1420,11 @@ def train(env, flag, test_file, i_weights):
     plt.savefig("losses.png")
     plt.show()
 
-
 import argparse
 if __name__=='__main__':
     parser_old = argparse.ArgumentParser()
     parser_old.add_argument('--env', required=True, type=str, choices=['mac', 'linux']) # 000550.tar
-    parser_old.add_argument('--flag', required=True, choices=['train', 'test'])
+    parser_old.add_argument('--flag', required=True, choices=['train', 'test', "video"])
     parser_old.add_argument('--test_file', type=str, default="None") # 000550.tar
     parser_old.add_argument("--i_weights", type=int, default=0)
     args_old = parser_old.parse_args()
