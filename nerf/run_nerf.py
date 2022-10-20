@@ -1041,7 +1041,7 @@ def train(env, flag, test_file, i_weights):
 
     if args.render_query_video:
         with torch.no_grad():
-            queries, disps = render_query_video(args.root_path + "Nesf0_2D/" + args.text + "_clip_feature.npy", render_poses, hwf, K, args.chunk, render_kwargs_test)
+            queries, disps = render_query_video(args.root_path + "Nesf0_2D/" + args.text + "_clip_feature.npy", render_poses, hwf, K, args.chunk, render_kwargs_test, use_clip = True)
         imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video.mp4", to8b(queries), fps=30, quality=8)
         imageio.mimwrite(args.root_path + "Nesf0_2D/render_query_video_disp.mp4", to8b(disps / np.max(disps)), fps=30, quality=8)
         return
@@ -1192,7 +1192,7 @@ def train(env, flag, test_file, i_weights):
         rays_rgb = torch.Tensor(rays_rgb).to(device)
 
     #______________________________________
-    N_iters = 100000
+    N_iters = 100000 + 1
 
     losses = []
     # Summary writers
