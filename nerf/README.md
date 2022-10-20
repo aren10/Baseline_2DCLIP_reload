@@ -17,9 +17,18 @@ python run_nerf.py --env linux --flag video --test_file 099000.tar
 ctrl + z
 cd /users/aren10/data/toybox-13/0
 scp /Users/jfgvl1187/Desktop/metadata.json aren10@ssh.ccv.brown.edu:/users/aren10/data/0/metadata.json
+
 scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/nerf_query_map.png /Users/jfgvl1187/Desktop/nerf_query_map.png 
 scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/gt_query_map.png /Users/jfgvl1187/Desktop/gt_query_map.png
+
+scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/render_query_video.mp4 /Users/jfgvl1187/Desktop/render_query_video.mp4
+scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/render_query_video_disp.mp4 /Users/jfgvl1187/Desktop/render_query_video_disp.mp4
+
+scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/render_path.mp4 /Users/jfgvl1187/Desktop/render_path.mp4
+scp aren10@ssh.ccv.brown.edu:/users/aren10/data/Nesf0_2D/render_path_disp.mp4 /Users/jfgvl1187/Desktop/render_path_disp.mp4
+
 scp -r aren10@ssh.ccv.brown.edu:/users/aren10/Baseline_2DCLIP_reload/nerf/losses.png /Users/jfgvl1187/Desktop/losses.png
+
 zip -r logs.zip logs
 scp -r aren10@ssh.ccv.brown.edu:/users/aren10/Baseline_2DCLIP_reload/nerf/logs.zip /Users/jfgvl1187/Desktop/logs.zip
 rm -r logs
